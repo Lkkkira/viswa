@@ -1,18 +1,19 @@
 # FilePilot — Intelligent File Organizer
 
-![FilePilot Visual Interface](https://raw.githubusercontent.com/placeholder/filepilot/main/docs/preview.png)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Lkkkira/viswa)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Lkkkira/viswa)
 
 FilePilot is an intelligent, local-first file organization tool featuring a modern visual interface matching pale blue (`#DCEAF7`) and deep purple (`#4F35B9`) design targets. It classifies unorganized archives, identifies exact SHA-256 duplicate files, generates deterministic organization manifests with collision prevention, and executes safe workspace transformations.
 
 ---
 
-## 🚀 Key Features
+## 🎨 Visual Identity & Interface Architecture
 
-- **Storage & Category Overview**: Scans archives and displays real category file counts and total storage sizes across Documents, Images, Audio, Videos, Code, Archives, and Others.
-- **SHA-256 Duplicate Detection**: Group identical files by binary hashes and view potential storage savings before organizing.
-- **Interactive Manifest & Plan Editor**: Inspect proposed destination paths, resolve filename collisions automatically, and edit custom target paths.
-- **Safe Transformation & Restoration**: Non-destructive isolated sandbox execution with instant workspace state restoration and downloadable organized output ZIP archives.
-- **File Inspection Drawer**: View file metadata, full SHA-256 hashes, and safe text/image content previews.
+- **Primary Background**: `#DCEAF7` (Pale blue backdrop)
+- **Main Container**: Large rounded surface (`#F0F6FB` / white cards) with soft shadows
+- **Sidebar**: Left navigation sidebar with vertical divider, branding logo, workspace badge, and section navigation
+- **Accent Purple**: `#4F35B9` (Primary actions, active indicators, storage overview card)
+- **Accent Cyan**: `#20BCE5` (Folder icons, file type badges, highlights)
 
 ---
 
@@ -24,53 +25,35 @@ FilePilot is an intelligent, local-first file organization tool featuring a mode
 
 ---
 
-## 📦 Setup & Installation
+## 🚀 Instant Cloud Deployment
+
+Click either button below to deploy FilePilot live from this GitHub repository:
+
+- 🟣 **Deploy Full Stack to Render** (1-Click Docker Web Service): [Deploy on Render](https://render.com/deploy?repo=https://github.com/Lkkkira/viswa)
+- ▲ **Deploy Frontend to Vercel** (1-Click Static React App): [Deploy on Vercel](https://vercel.com/new/clone?repository-url=https://github.com/Lkkkira/viswa)
+
+---
+
+## 📦 Setup & Local Running
 
 ### 1. Prerequisites
 - Node.js (v18+)
 - Python (v3.10+)
 
-### 2. Backend Setup
-```bash
-# Create virtual environment
-python -m venv venv
+### 2. Running Local Applications
 
-# Activate virtual environment
-# Windows:
-.\venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+- **React Frontend**:
+  ```bash
+  cd frontend
+  npm install
+  npm run dev
+  ```
+  Open `http://localhost:5173`
 
-# Install dependencies
-pip install -r backend/requirements.txt
-
-# Run backend server
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
-```
-
-### 3. Frontend Setup
-```bash
-# Navigate to frontend folder
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start Vite dev server
-npm run dev
-```
-Open your browser at `http://localhost:5173`.
-
-### 4. Running Backend Tests
-```bash
-python -m pytest backend/tests/test_engine.py
-```
-
-### 5. Generate Test Archive
-```bash
-python generate_test_data.py
-```
-This generates `sample_workspace.zip` (~57 files with duplicates and messy names) for testing uploads.
+- **FastAPI Backend**:
+  ```bash
+  python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+  ```
 
 ---
 
