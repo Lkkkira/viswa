@@ -7,7 +7,7 @@ import datetime
 import pandas as pd
 import streamlit as st
 
-# Add workspace path to sys.path
+# Add root workspace path to sys.path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from backend.app.services.extraction import validate_and_extract_zip, ExtractionError
@@ -17,7 +17,7 @@ from backend.app.services.duplicates import group_duplicates
 from backend.app.services.organizer import generate_organization_plan, execute_organization_plan
 from backend.app.services.restore import restore_job_workspace
 
-# Page configuration
+# Page setup
 st.set_page_config(
     page_title="FilePilot — Intelligent File Organizer",
     page_icon="📁",
@@ -25,23 +25,23 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom visual CSS inject matching visual identity
+# Custom visual CSS inject matching visual target identity
 st.markdown("""
 <style>
-    /* Global Page Background */
+    /* Global Background */
     .stApp {
         background-color: #DCEAF7;
         color: #1B2A4A;
-        font-family: 'Inter', system-ui, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     
-    /* Main container rounded card styling */
+    /* Main surface card container */
     .main .block-container {
         background-color: #F0F6FB;
         border-radius: 24px;
         padding: 2.5rem;
         border: 1px solid #CDE1F3;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 30px rgba(27, 42, 74, 0.05);
         margin-top: 1rem;
         margin-bottom: 2rem;
     }
@@ -52,56 +52,77 @@ st.markdown("""
         border-right: 1px solid #D2E3F3 !important;
     }
 
-    /* Headings & Text */
-    h1, h2, h3, h4 {
+    h1, h2, h3, h4, h5 {
         color: #1B2A4A !important;
         font-weight: 700 !important;
+        letter-spacing: -0.02em;
     }
 
-    /* Custom Cards */
-    .storage-card {
-        background: linear-gradient(135deg, #4F35B9 0%, #3B2596 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 18px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 8px 20px rgba(79, 53, 185, 0.2);
+    /* Custom Storage Gradient Banner */
+    .storage-card-banner {
+        background: linear-gradient(135deg, #4F35B9 0%, #432C9E 50%, #382387 100%);
+        color: white !important;
+        padding: 1.75rem;
+        border-radius: 20px;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 10px 25px rgba(79, 53, 185, 0.25);
     }
-    
-    .category-card {
+
+    .storage-card-banner h2, .storage-card-banner h3 {
+        color: white !important;
+    }
+
+    /* Folder Category Cards */
+    .folder-card {
         background-color: #ffffff;
         border: 1px solid #DCE8F5;
         border-radius: 16px;
         padding: 1.25rem;
-        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
-    
-    /* Primary buttons */
-    .stButton > button {
-        background-color: #4F35B9;
-        color: white;
-        border-radius: 12px;
-        font-weight: 600;
-        border: none;
-        padding: 0.5rem 1.25rem;
-    }
-    .stButton > button:hover {
-        background-color: #3E269B;
-        color: white;
+    .folder-card:hover {
+        border-color: #20BCE5;
+        box-shadow: 0 6px 16px rgba(32, 188, 229, 0.15);
     }
 
-    /* Download button */
+    /* Primary Purple Button */
+    .stButton > button {
+        background-color: #4F35B9 !important;
+        color: white !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        padding: 0.5rem 1.5rem !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton > button:hover {
+        background-color: #3E269B !important;
+        box-shadow: 0 4px 12px rgba(79, 53, 185, 0.3) !important;
+    }
+
+    /* Download Cyan Button */
     .stDownloadButton > button {
-        background-color: #20BCE5;
-        color: white;
-        border-radius: 12px;
-        font-weight: 700;
-        border: none;
+        background-color: #20BCE5 !important;
+        color: white !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        border: none !important;
+        padding: 0.6rem 1.5rem !important;
+    }
+    .stDownloadButton > button:hover {
+        background-color: #19a7cd !important;
+    }
+
+    /* Dataframe Table styling */
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #DCE8F5;
+        border-radius: 16px;
+        overflow: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Helper functions
+# Helper formatting
 def format_bytes(bytes_val):
     if not bytes_val or bytes_val == 0:
         return "0 B"
@@ -112,7 +133,7 @@ def format_bytes(bytes_val):
         i += 1
     return f"{bytes_val:.1f} {sizes[i]}"
 
-# Session State Initialization
+# Initialize Session State
 if "jobs" not in st.session_state:
     st.session_state.jobs = {}
 if "active_job_id" not in st.session_state:
@@ -125,10 +146,17 @@ if "settings" not in st.session_state:
 
 WORKSPACE_BASE = os.path.abspath("workspace")
 
-# Sidebar Branding & Navigation
+# Sidebar
 with st.sidebar:
-    st.markdown("### 📁 FilePilot v1.0")
-    st.caption("Intelligent File Organizer")
+    st.markdown("""
+    <div style="text-align: center; padding-bottom: 1rem;">
+        <div style="background-color: white; width: 50px; height: 50px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 0.5rem;">
+            <span style="font-size: 24px;">📁</span>
+        </div>
+        <h2 style="margin: 0; font-size: 1.25rem;">FilePilot</h2>
+        <span style="font-size: 0.75rem; color: #6B7C96;">Intelligent File Organizer</span>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
 
     page = st.radio(
@@ -150,7 +178,9 @@ with st.sidebar:
     if st.session_state.active_job_id:
         active_job = st.session_state.jobs.get(st.session_state.active_job_id)
         if active_job:
-            st.info(f"**Active Job:** {active_job['source_filename']}\n\nStatus: `{active_job['status']}`")
+            st.info(f"**Active Workspace:**\n`{active_job['source_filename']}`\n\nStatus: `{active_job['status'].upper()}`")
+    
+    st.caption("FilePilot v1.0")
 
 # Active Job Reference
 active_job = st.session_state.jobs.get(st.session_state.active_job_id)
@@ -168,20 +198,22 @@ if page == "📊 Dashboard":
         dup_count = active_job.get("duplicate_count", 0)
 
         st.markdown(f"""
-        <div class="storage-card">
-            <h3 style="color: white !important; margin-bottom: 0.25rem;">Storage Overview — {format_bytes(total_size)} Scanned</h3>
-            <p style="font-size: 0.85rem; opacity: 0.9;">Archive contains <b>{total_files} total files</b>. Found <b>{dup_count} duplicate copies</b> with <b>{format_bytes(dup_savings)}</b> potential savings.</p>
+        <div class="storage-card-banner">
+            <span style="font-size: 0.75rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">STORAGE OVERVIEW</span>
+            <h2 style="font-size: 1.75rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">{format_bytes(total_size)} Scanned</h2>
+            <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">Workspace archive contains <b>{total_files} total files</b>. Identified <b>{dup_count} duplicate copies</b> with <b>{format_bytes(dup_savings)}</b> potential storage savings.</p>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-        <div class="storage-card">
-            <h3 style="color: white !important; margin-bottom: 0.25rem;">Analyze your files</h3>
-            <p style="font-size: 0.85rem; opacity: 0.9;">Upload a ZIP archive to calculate real file counts, exact duplicates, and storage category breakdown.</p>
+        <div class="storage-card-banner">
+            <span style="font-size: 0.75rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">STORAGE OVERVIEW</span>
+            <h2 style="font-size: 1.75rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">Analyze your files</h2>
+            <p style="font-size: 0.85rem; opacity: 0.95; margin: 0;">Upload a ZIP archive to calculate real file counts, exact duplicates, and storage usage breakdown.</p>
         </div>
         """, unsafe_allow_html=True)
 
-    # Category Cards Grid
+    # Category Cards
     st.subheader("My Folders")
     st.caption("Your files by category")
 
@@ -196,9 +228,12 @@ if page == "📊 Dashboard":
         cat_size = sum(f["file_size"] for f in files_list if f["category"] == cat)
         with cols[idx]:
             st.markdown(f"""
-            <div class="category-card">
-                <span style="font-size: 0.75rem; color: #4F35B9; font-weight: bold;">{format_bytes(cat_size)}</span>
-                <h4 style="margin-top: 0.5rem; margin-bottom: 0.25rem;">{cat}</h4>
+            <div class="folder-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 20px;">📁</span>
+                    <span style="font-size: 0.75rem; color: #4F35B9; font-weight: bold; background: #E0ECF8; padding: 2px 8px; border-radius: 8px;">{format_bytes(cat_size)}</span>
+                </div>
+                <h4 style="margin-top: 0.75rem; margin-bottom: 0.2rem; font-size: 1rem;">{cat}</h4>
                 <p style="font-size: 0.8rem; color: #6B7C96; margin: 0;">{count} files</p>
             </div>
             """, unsafe_allow_html=True)
@@ -212,7 +247,7 @@ if page == "📊 Dashboard":
             df_chart = pd.DataFrame(list(cat_summary.items()), columns=["Category", "File Count"])
             st.bar_chart(df_chart.set_index("Category"))
         else:
-            st.info("No workspace scanned yet. Upload a ZIP archive to view analytics.")
+            st.info("No workspace scanned yet. Upload a ZIP archive to view category distribution.")
 
     with c2:
         st.subheader("Recent Files")
@@ -243,7 +278,7 @@ elif page == "📤 Upload Files":
             with open(archive_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
-            with st.spinner("Extracting archive & scanning files..."):
+            with st.spinner("Extracting archive & computing SHA-256 binary hashes..."):
                 try:
                     count = validate_and_extract_zip(archive_path, extracted_dir)
                     raw_records = list(scan_directory(extracted_dir, category_rules=st.session_state.settings["category_rules"]))
@@ -285,7 +320,7 @@ elif page == "📤 Upload Files":
                     st.session_state.active_job_id = job_id
 
                     st.balloons()
-                    st.success(f"Successfully scanned {count} files! Proceed to Organization Plan.")
+                    st.success(f"Successfully scanned {count} files! Switch to Organization Plan to review.")
                 except ExtractionError as ee:
                     st.error(str(ee))
                 except Exception as e:
@@ -336,7 +371,7 @@ elif page == "👯 Duplicates":
         dup_count = active_job.get("duplicate_count", 0)
         dup_savings = active_job.get("duplicate_savings", 0)
 
-        st.metric("Duplicate Copies", dup_count, delta=f"-{format_bytes(dup_savings)} recoverable")
+        st.metric("Duplicate Copies Found", dup_count, delta=f"-{format_bytes(dup_savings)} recoverable")
 
         files = active_job.get("files", [])
         dup_files = [f for f in files if f.get("is_duplicate")]
@@ -403,7 +438,7 @@ elif page == "🏁 Organization Results":
         if out_zip and os.path.exists(out_zip):
             with open(out_zip, "rb") as f:
                 st.download_button(
-                    label="💾 Download Organized ZIP",
+                    label="💾 Download Organized ZIP Archive",
                     data=f.read(),
                     file_name=f"organized_{active_job['source_filename']}",
                     mime="application/zip",
